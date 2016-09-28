@@ -26,13 +26,14 @@ public class MainActivity extends Activity implements SensorEventListener {
     public Vibrator v;
     private float lastX, lastY, lastZ;
     private SensorManager sensorManager;
-    private Sensor accelerometer;
+    private Sensor accelerometer,light;
     private float deltaXMax = 0;
     private float deltaYMax = 0;
     private float deltaZMax = 0;
     private float deltaX = 0;
     private float deltaY = 0;
     private float deltaZ = 0;
+    private boolean knowlight=false;
     private float vibrateThreshold = 0;
     private TextView currentX, currentY, currentZ, maxX, maxY, maxZ;
     private ArrayList<String> data= new ArrayList<String>();
@@ -77,7 +78,16 @@ public class MainActivity extends Activity implements SensorEventListener {
         } else {
             // fai! we dont have an accelerometer!
         }
+        if(sensorManager.getDefaultSensor(Sensor.TYPE_LIGHT)!=null)
+        {
+            light = sensorManager.getDefaultSensor(Sensor.TYPE_LIGHT);
+            sensorManager.registerListener(this,light,sensorManager.SENSOR_DELAY_NORMAL);
 
+        }
+        else
+        {
+
+        }
         //initialize vibration
         v = (Vibrator) this.getSystemService(Context.VIBRATOR_SERVICE);
 
@@ -98,6 +108,7 @@ public class MainActivity extends Activity implements SensorEventListener {
     protected void onResume() {
         super.onResume();
         sensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_NORMAL);
+        sensorManager.registerListener(this, light, SensorManager.SENSOR_DELAY_NORMAL);
     }
 
     //onPause() unregister the accelerometer for stop listening the events
@@ -114,28 +125,45 @@ public class MainActivity extends Activity implements SensorEventListener {
     @Override
     public void onSensorChanged(SensorEvent event) {
 
-        // clean current values
-        displayCleanValues();
-        // display the current x,y,z accelerometer values
-        displayCurrentValues();
-        // display the max x,y,z accelerometer values
-        displayMaxValues();
+        if(event.accuracy==sensorManager.SENSOR_STATUS_UNRELIABLE)return;
+        Sensor se=event.sensor;
+        if(se.getType()==Sensor.TYPE_LIGHT)
+        {
+            float curlight=event.values[0];
+            if(curlight<1)knowlight=true;
+            else knowlight=false;
 
-        // get the change of the x,y,z values of the accelerometer
-        deltaX = Math.abs(lastX - event.values[0]);
-        deltaY = Math.abs(lastY - event.values[1]);
-        deltaZ = Math.abs(lastZ - event.values[2]);
-        StringBuilder getdata= new StringBuilder();
-        getdata.append(System.currentTimeMillis()+",");
-        getdata.append(deltaX+",");
-        getdata.append(deltaY+",");
-        getdata.append(deltaZ+"\n");
-        data.add(getdata.toString());
-        // if the change is below 2, it is just plain noise
-        if (deltaX < 2)
-            deltaX = 0;
-        if (deltaY < 2)
-            deltaY = 0;
+        }
+        else if(se.getType()==Sensor.TYPE_ACCELEROMETER)
+        {
+            // clean current values
+            displayCleanValues();
+            // display the current x,y,z accelerometer values
+            displayCurrentValues();
+            // display the max x,y,z accelerometer values
+            displayMaxValues();
+
+            // get the change of the x,y,z values of the accelerometer
+            deltaX = Math.abs(lastX - event.values[0]);
+            deltaY = Math.abs(lastY - event.values[1]);
+            deltaZ = Math.abs(lastZ - event.values[2]);
+            if (deltaX < 2)
+                deltaX = 0;
+            if (deltaY < 2)
+                deltaY = 0;
+            if(knowlight) {
+                StringBuilder getdata = new StringBuilder();
+                getdata.append(System.currentTimeMillis() + ",");
+                getdata.append(deltaX + ",");
+                getdata.append(deltaY + ",");
+                getdata.append(deltaZ + "\n");
+                data.add(getdata.toString());
+            }
+
+            // if the change is below 2, it is just plain noise
+
+        }
+
         /*if (deltaZ vibrateThreshold)||(deltaY > vibrateThreshold) || (deltaZ > vibrateThreshold)){
             v.vibrate(50);*/
 
