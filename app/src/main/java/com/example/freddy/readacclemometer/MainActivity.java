@@ -151,7 +151,7 @@ public class MainActivity extends Activity implements SensorEventListener {
                 deltaX = 0;
             if (deltaY < 2)
                 deltaY = 0;
-            if(knowlight) {
+            if(knowlight&&deltaX!=0&&deltaY!=0&&deltaZ!=0) {
                 StringBuilder getdata = new StringBuilder();
                 getdata.append(System.currentTimeMillis() + ",");
                 getdata.append(deltaX + ",");
