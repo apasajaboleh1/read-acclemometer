@@ -1,6 +1,7 @@
 package com.example.freddy.readacclemometer;
 
 import android.os.Environment;
+import android.os.SystemClock;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.app.Activity;
@@ -65,7 +66,7 @@ public class MainActivity extends Activity implements SensorEventListener {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-                finish();
+                System.exit(1);
             }
         });
         sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
@@ -151,7 +152,7 @@ public class MainActivity extends Activity implements SensorEventListener {
                 deltaX = 0;
             if (deltaY < 2)
                 deltaY = 0;
-            if(knowlight&&deltaX!=0&&deltaY!=0&&deltaZ!=0) {
+            if(knowlight&&(deltaX>0&&deltaY>0)) {
                 StringBuilder getdata = new StringBuilder();
                 getdata.append(System.currentTimeMillis() + ",");
                 getdata.append(deltaX + ",");
